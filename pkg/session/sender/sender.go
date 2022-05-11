@@ -4,11 +4,22 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
 
 	"github.com/pion/webrtc/v2"
 	"github.com/dinosoupy/wormhole/pkg/stats"
 	"github.com/dinosoupy/wormhole/pkg/session/common"
 )
+
+const (
+	// Must be <= 16384
+	senderBuffSize = 16384
+)
+
+type outputMsg struct {
+	n    int
+	buff []byte
+}
 
 type SenderSession struct {
 	session 	session.Session	
@@ -29,9 +40,9 @@ type SenderSession struct {
 }
 
 //New creates a new sender session
-func NewSender(s session.Session, f io.Reader) *Session {
-	return &Session{
-		sess:         s,
+func NewSender(s session.Session, f io.Reader) *SenderSession {
+	return &SenderSession{
+		session:      s,
 		stream:       f,
 		initialized:  false,
 		dataBuff:     make([]byte, senderBuffSize),
@@ -41,8 +52,3 @@ func NewSender(s session.Session, f io.Reader) *Session {
 		readingStats: stats.New(),
 	}
 }  
-
-// New creates a new receiver session
-func NewReceiver(f io.Reader) *Session {
-	return new(session.New(nil, nil, ""), f)
-}
