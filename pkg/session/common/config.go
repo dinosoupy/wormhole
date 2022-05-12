@@ -3,7 +3,7 @@ package common
 import (
 	"io"
 
-	"github.com/dinosoupy/pkg/session"
+	"github.com/dinosoupy/wormhole/pkg/session"
 )
 
 // Configuration common to both Sender and Receiver session

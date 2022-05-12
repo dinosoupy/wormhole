@@ -39,10 +39,10 @@ type SenderSession struct {
 	readingStats *stats.Stats
 }
 
-//New creates a new sender session
-func NewSender(s session.Session, f io.Reader) *SenderSession {
+// Sender Session constructor
+func Sender(f io.Reader) *SenderSession {
 	return &SenderSession{
-		session:      s,
+		session:      session.New(nil, nil),
 		stream:       f,
 		initialized:  false,
 		dataBuff:     make([]byte, senderBuffSize),

@@ -11,6 +11,7 @@ require (
 require (
 	github.com/cheekybits/genny v1.0.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/lucas-clemente/quic-go v0.7.1-0.20190401152353-907071221cf9 // indirect
 	github.com/marten-seemann/qtls v0.2.3 // indirect
 	github.com/pion/datachannel v1.5.2 // indirect
@@ -32,6 +33,9 @@ require (
 	github.com/pion/transport v0.13.0 // indirect
 	github.com/pion/turn/v2 v2.0.8 // indirect
 	github.com/pion/udp v0.1.1 // indirect
+	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/spf13/cobra v1.4.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/crypto v0.0.0-20220507011949-2cf3adece122 // indirect
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4 // indirect
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect

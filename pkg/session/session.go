@@ -1,13 +1,13 @@
 package session
 
-import {
+import (
 	"io"
 	"os"
 
 	"github.com/pion/webrtc/v2"
 	"github.com/dinosoupy/wormhole/pkg/utils"
 	"github.com/dinosoupy/wormhole/pkg/stats"
-}
+)
 
 // CompletionHandler is called when the transfer is done
 type Completionandler func()
