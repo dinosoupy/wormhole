@@ -6,8 +6,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/dinosoupy/wormhole/pkg/session/receiver"
 )
 
 // receiveCmd represents the receive command
@@ -15,8 +17,23 @@ var receiveCmd = &cobra.Command{
 	Use:   "receive",
 	Short: "Receive files by passing in the name you want to save the received file as argument",
 	Long: `Receive command is used to receive files that have been sent to the device`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("receive called")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		output := args[0]
+		if output == "" {
+			return fmt.Errorf("output parameter missing")
+		}
+		f, err := os.OpenFile(output, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		conf := receiver.Config{
+			Stream: f,
+		}
+
+		session := receiver.Receiver(conf)
+		return session.Start()
 	},
 }
 

@@ -1,13 +1,12 @@
-package session
+package sender
 
 import (
-	"fmt"
 	"io"
-	"os"
 	"sync"
 
 	"github.com/pion/webrtc/v2"
 	"github.com/dinosoupy/wormhole/pkg/stats"
+	"github.com/dinosoupy/wormhole/pkg/session"
 	"github.com/dinosoupy/wormhole/pkg/session/common"
 )
 
@@ -40,10 +39,10 @@ type SenderSession struct {
 }
 
 // Sender Session constructor
-func Sender(f io.Reader) *SenderSession {
+func Sender(c Config) *SenderSession {
 	return &SenderSession{
 		session:      session.New(nil, nil),
-		stream:       f,
+		stream:       c.Stream,
 		initialized:  false,
 		dataBuff:     make([]byte, senderBuffSize),
 		stopSending:  make(chan struct{}, 1),
@@ -52,3 +51,9 @@ func Sender(f io.Reader) *SenderSession {
 		readingStats: stats.New(),
 	}
 }  
+
+// Config contains custom configuration for a session
+type Config struct {
+	common.Configuration
+	Stream io.Reader // The Stream to read from
+}

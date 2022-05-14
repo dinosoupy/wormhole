@@ -3,6 +3,7 @@ package session
 import (
 	"io"
 	"os"
+	"fmt"
 
 	"github.com/pion/webrtc/v2"
 	"github.com/dinosoupy/wormhole/pkg/utils"
@@ -10,7 +11,7 @@ import (
 )
 
 // CompletionHandler is called when the transfer is done
-type Completionandler func()
+type CompletionHandler func()
 
 // Session struct to store session info
 type Session struct {
@@ -30,7 +31,7 @@ func New(sdpInput io.Reader, sdpOutput io.Writer) Session {
 		sdpOutput:    sdpOutput,
 		Done:         make(chan struct{}),
 		NetworkStats: stats.New(),
-		stunServers:  []string,
+		stunServers:  []string{"stun:stun.l.google.com:19302"},
 	}
 
 	if sdpInput == nil {
@@ -39,9 +40,7 @@ func New(sdpInput io.Reader, sdpOutput io.Writer) Session {
 	if sdpOutput == nil {
 		sess.sdpOutput = os.Stdout
 	}
-	if stunServers == "" {
-		sess.stunServers = []string{"stun:stun.l.google.com:19302"}
-	}
+
 	return sess
 }
 
@@ -133,7 +132,5 @@ func (s *Session) createSessionDescription(desc webrtc.SessionDescription) error
 
 // OnCompletion is called when session ends
 func (s *Session) OnCompletion() {
-	if s.onCompletion != nil {
-		s.onCompletion()
-	}
+	s.onCompletion()
 }

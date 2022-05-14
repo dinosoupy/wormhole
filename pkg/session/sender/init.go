@@ -47,7 +47,7 @@ func (s *SenderSession) Start() error {
 	return nil
 }
 
-func (s *Session) createDataChannel() error {
+func (s *SenderSession) createDataChannel() error {
 	ordered := true
 	maxPacketLifeTime := uint16(10000)
 	dataChannel, err := s.session.CreateDataChannel(&webrtc.DataChannelInit{

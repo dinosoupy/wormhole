@@ -9,9 +9,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/dinosoupy/wormhole/pkg/session"
-	"github.com/dinosoupy/wormhole/pkg/session/common"
 	"github.com/dinosoupy/wormhole/pkg/session/sender"
+	"github.com/dinosoupy/wormhole/pkg/session/common"
 )
 
 // sendCmd represents the send command
@@ -19,7 +18,7 @@ var sendCmd = &cobra.Command{
 	Use:   "send",
 	Short: "Send any flie by passing in filename as the argument",
 	Long: `The send command is used to send files to a receiver`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		fileToSend := args[0]
 		if fileToSend == "" {
 			return fmt.Errorf("file parameter missing")
@@ -29,6 +28,7 @@ var sendCmd = &cobra.Command{
 			return err
 		}
 		defer f.Close()
+
 		conf := sender.Config{
 			Stream: f,
 			Configuration: common.Configuration{
@@ -36,7 +36,8 @@ var sendCmd = &cobra.Command{
 				},
 			},
 		}
-		session := sender.New(f)
+
+		session := sender.Sender(conf)
 		return session.Start()
 	},
 }

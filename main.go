@@ -1,27 +1,47 @@
+/*
+Copyright © 2022 Anish Basu
+
+*/
 package main
 
 import (
-	"github.com/pion/rtcp"
-	"github.com/pion/webrtc/v3"
-	"github.com/pion/webrtc/v3/examples/internal/signal"
+	"os"
+
+	"github.com/dinosoupy/wormhole/cmd"
+	log "github.com/sirupsen/logrus"
 )
 
-func main() {
-	// HTTP server for saving SDP strings (base64 encoded)
-	sdpChan := signal.HTTPSDPServer()
+func setupLogger() {
+	log.SetOutput(os.Stdout)
 
-	// Decoding SD from base64 and storing it in SessionDescription struct
-	offer := webrtc.SessionDescription{}
-	signal.Decode(<-sdpChan, &offer)
-	fmt.Println("")
+	logLevel := log.WarnLevel
 
-	// Config for ICE servers stored as ICEServer json struct
-	peerConnectionConfig := webrtc.Configuration{
-		ICEServers: []webrtc.ICEServer{
-			{
-				URLs: []string{"stun:stun.l.google.com:19302"},
-			},
-		},
+	if lvl, ok := os.LookupEnv("GFILE_LOG"); ok {
+		switch lvl {
+		case "TRACE":
+			logLevel = log.TraceLevel
+		case "DEBUG":
+			logLevel = log.DebugLevel
+		case "INFO":
+			logLevel = log.InfoLevel
+		case "WARN":
+			logLevel = log.WarnLevel
+		case "PANIC":
+			logLevel = log.PanicLevel
+		case "ERROR":
+			logLevel = log.ErrorLevel
+		case "FATAL":
+			logLevel = log.FatalLevel
+		}
 	}
-	
+	log.SetLevel(logLevel)
+}
+
+func init() {
+	setupLogger()
+}
+
+
+func main() {
+	cmd.Execute()
 }
