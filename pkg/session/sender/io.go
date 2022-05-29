@@ -7,7 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (s *SenderSession) readFile() {
+func (s *Session) readFile() {
 	log.Infof("Starting to read data...")
 	s.readingStats.Start()
 	defer func() {
@@ -40,18 +40,18 @@ func (s *SenderSession) readFile() {
 	}
 }
 
-func (s *SenderSession) onBufferedAmountLow() func() {
+func (s *Session) onBufferedAmountLow() func() {
 	return func() {
 		data := <-s.output
 		if data.n != 0 {
 			s.msgToBeSent = append(s.msgToBeSent, data)
 		} else if len(s.msgToBeSent) == 0 && s.dataChannel.BufferedAmount() == 0 {
-			s.session.NetworkStats.Stop()
+			s.sess.NetworkStats.Stop()
 			s.close(false)
 			return
 		}
 
-		currentSpeed := s.session.NetworkStats.Bandwidth()
+		currentSpeed := s.sess.NetworkStats.Bandwidth()
 		fmt.Printf("Transferring at %.2f MB/s\r", currentSpeed)
 
 		for len(s.msgToBeSent) != 0 {
@@ -61,18 +61,18 @@ func (s *SenderSession) onBufferedAmountLow() func() {
 				log.Errorf("Error, cannot send to client: %v\n", err)
 				return
 			}
-			s.session.NetworkStats.AddBytes(uint64(cur.n))
+			s.sess.NetworkStats.AddBytes(uint64(cur.n))
 			s.msgToBeSent = s.msgToBeSent[1:]
 		}
 	}
 }
 
-func (s *SenderSession) writeToNetwork() {
+func (s *Session) writeToNetwork() {
 	// Set callback, as transfer may be paused
 	s.dataChannel.OnBufferedAmountLow(s.onBufferedAmountLow())
 
 	<-s.stopSending
 	s.dataChannel.OnBufferedAmountLow(nil)
-	s.session.NetworkStats.Pause()
+	s.sess.NetworkStats.Pause()
 	log.Infof("Pausing network I/O... (remaining at least %v packets)\n", len(s.output))
 }

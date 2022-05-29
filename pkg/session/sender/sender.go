@@ -4,10 +4,10 @@ import (
 	"io"
 	"sync"
 
-	"github.com/pion/webrtc/v2"
-	"github.com/dinosoupy/wormhole/pkg/stats"
-	"github.com/dinosoupy/wormhole/pkg/session"
+	internalSess "github.com/dinosoupy/wormhole/internal/session"
 	"github.com/dinosoupy/wormhole/pkg/session/common"
+	"github.com/dinosoupy/wormhole/pkg/stats"
+	"github.com/pion/webrtc/v2"
 )
 
 const (
@@ -20,8 +20,9 @@ type outputMsg struct {
 	buff []byte
 }
 
-type SenderSession struct {
-	session 	session.Session	
+// Session is a sender session
+type Session struct {
+	sess        internalSess.Session
 	stream      io.Reader
 	initialized bool
 
@@ -38,11 +39,11 @@ type SenderSession struct {
 	readingStats *stats.Stats
 }
 
-// Sender Session constructor
-func Sender(c Config) *SenderSession {
-	return &SenderSession{
-		session:      session.New(nil, nil),
-		stream:       c.Stream,
+// New creates a new sender session
+func new(s internalSess.Session, f io.Reader) *Session {
+	return &Session{
+		sess:         s,
+		stream:       f,
 		initialized:  false,
 		dataBuff:     make([]byte, senderBuffSize),
 		stopSending:  make(chan struct{}, 1),
@@ -52,8 +53,23 @@ func Sender(c Config) *SenderSession {
 	}
 }  
 
+// New creates a new receiver session
+func New(f io.Reader) *Session {
+	return new(internalSess.New(nil, nil, ""), f)
+}
+
 // Config contains custom configuration for a session
 type Config struct {
 	common.Configuration
 	Stream io.Reader // The Stream to read from
+}
+
+// NewWith createa a new sender Session with custom configuration
+func NewWith(c Config) *Session {
+	return new(internalSess.New(c.SDPProvider, c.SDPOutput, c.STUN), c.Stream)
+}
+
+// SetStream changes the stream, useful for WASM integration
+func (s *Session) SetStream(stream io.Reader) {
+	s.stream = stream
 }

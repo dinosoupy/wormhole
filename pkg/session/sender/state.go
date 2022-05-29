@@ -7,7 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (s *SenderSession) onConnectionStateChange() func(connectionState webrtc.ICEConnectionState) {
+func (s *Session) onConnectionStateChange() func(connectionState webrtc.ICEConnectionState) {
 	return func(connectionState webrtc.ICEConnectionState) {
 		log.Infof("ICE Connection State has changed: %s\n", connectionState.String())
 		if connectionState == webrtc.ICEConnectionStateDisconnected {
@@ -16,9 +16,9 @@ func (s *SenderSession) onConnectionStateChange() func(connectionState webrtc.IC
 	}
 }
 
-func (s *SenderSession) onOpenHandler() func() {
+func (s *Session) onOpenHandler() func() {
 	return func() {
-		s.session.NetworkStats.Start()
+		s.sess.NetworkStats.Start()
 
 		log.Infof("Starting to send data...")
 		defer log.Infof("Stopped sending data...")
@@ -27,13 +27,13 @@ func (s *SenderSession) onOpenHandler() func() {
 	}
 }
 
-func (s *SenderSession) onCloseHandler() func() {
+func (s *Session) onCloseHandler() func() {
 	return func() {
 		s.close(true)
 	}
 }
 
-func (s *SenderSession) close(calledFromCloseHandler bool) {
+func (s *Session) close(calledFromCloseHandler bool) {
 	if !calledFromCloseHandler {
 		s.dataChannel.Close()
 	}
@@ -47,12 +47,12 @@ func (s *SenderSession) close(calledFromCloseHandler bool) {
 	s.doneCheck = true
 	s.doneCheckLock.Unlock()
 	s.dumpStats()
-	close(s.session.Done)
+	close(s.sess.Done)
 }
 
-func (s *SenderSession) dumpStats() {
+func (s *Session) dumpStats() {
 	fmt.Printf(`
 Disk   : %s
 Network: %s
-`, s.readingStats.String(), s.session.NetworkStats.String())
+`, s.readingStats.String(), s.sess.NetworkStats.String())
 }

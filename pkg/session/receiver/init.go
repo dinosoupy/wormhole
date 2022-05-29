@@ -8,20 +8,20 @@ import (
 )
 
 // Initialize creates the connection, the datachannel and creates the  offer
-func (s *ReceiverSession) Initialize() error {
+func (s *Session) Initialize() error {
 	if s.initialized {
 		return nil
 	}
-	if err := s.session.CreateConnection(s.onConnectionStateChange()); err != nil {
+	if err := s.sess.CreateConnection(s.onConnectionStateChange()); err != nil {
 		log.Errorln(err)
 		return err
 	}
 	s.createDataHandler()
-	if err := s.session.ReadSDP(); err != nil {
+	if err := s.sess.ReadSDP(); err != nil {
 		log.Errorln(err)
 		return err
 	}
-	if err := s.session.CreateAnswer(); err != nil {
+	if err := s.sess.CreateAnswer(); err != nil {
 		log.Errorln(err)
 		return err
 	}
@@ -31,27 +31,27 @@ func (s *ReceiverSession) Initialize() error {
 }
 
 // Start initializes the connection and the file transfer
-func (s *ReceiverSession) Start() error {
+func (s *Session) Start() error {
 	if err := s.Initialize(); err != nil {
 		return err
 	}
 
 	// Handle data
 	s.receiveData()
-	s.session.OnCompletion()
+	s.sess.OnCompletion()
 	return nil
 }
 
-func (s *ReceiverSession) createDataHandler() {
-	s.session.OnDataChannel(func(d *webrtc.DataChannel) {
+func (s *Session) createDataHandler() {
+	s.sess.OnDataChannel(func(d *webrtc.DataChannel) {
 		log.Debugf("New DataChannel %s %d\n", d.Label(), d.ID())
-		s.session.NetworkStats.Start()
+		s.sess.NetworkStats.Start()
 		d.OnMessage(s.onMessage())
 		d.OnClose(s.onClose())
 	})
 }
 
-func (s *ReceiverSession) receiveData() {
+func (s *Session) receiveData() {
 	log.Infoln("Starting to receive data...")
 	defer log.Infoln("Stopped receiving data...")
 
@@ -59,9 +59,9 @@ func (s *ReceiverSession) receiveData() {
 	// Does not stop on error
 	for {
 		select {
-		case <-s.session.Done:
-			s.session.NetworkStats.Stop()
-			fmt.Printf("\nNetwork: %s\n", s.session.NetworkStats.String())
+		case <-s.sess.Done:
+			s.sess.NetworkStats.Stop()
+			fmt.Printf("\nNetwork: %s\n", s.sess.NetworkStats.String())
 			return
 		case msg := <-s.msgChannel:
 			n, err := s.stream.Write(msg.Data)
@@ -69,9 +69,9 @@ func (s *ReceiverSession) receiveData() {
 			if err != nil {
 				log.Errorln(err)
 			} else {
-				currentSpeed := s.session.NetworkStats.Bandwidth()
+				currentSpeed := s.sess.NetworkStats.Bandwidth()
 				fmt.Printf("Transferring at %.2f MB/s\r", currentSpeed)
-				s.session.NetworkStats.AddBytes(uint64(n))
+				s.sess.NetworkStats.AddBytes(uint64(n))
 			}
 		}
 	}

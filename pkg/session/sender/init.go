@@ -10,12 +10,12 @@ const (
 )
 
 // Initialize creates the connection, the datachannel and creates the  offer
-func (s *SenderSession) Initialize() error {
+func (s *Session) Initialize() error {
 	if s.initialized {
 		return nil
 	}
 
-	if err := s.session.CreateConnection(s.onConnectionStateChange()); err != nil {
+	if err := s.sess.CreateConnection(s.onConnectionStateChange()); err != nil {
 		log.Errorln(err)
 		return err
 	}
@@ -23,7 +23,7 @@ func (s *SenderSession) Initialize() error {
 		log.Errorln(err)
 		return err
 	}
-	if err := s.session.CreateOffer(); err != nil {
+	if err := s.sess.CreateOffer(); err != nil {
 		log.Errorln(err)
 		return err
 	}
@@ -33,24 +33,24 @@ func (s *SenderSession) Initialize() error {
 }
 
 // Start the connection and the file transfer
-func (s *SenderSession) Start() error {
+func (s *Session) Start() error {
 	if err := s.Initialize(); err != nil {
 		return err
 	}
 	go s.readFile()
-	if err := s.session.ReadSDP(); err != nil {
+	if err := s.sess.ReadSDP(); err != nil {
 		log.Errorln(err)
 		return err
 	}
-	<-s.session.Done
-	s.session.OnCompletion()
+	<-s.sess.Done
+	s.sess.OnCompletion()
 	return nil
 }
 
-func (s *SenderSession) createDataChannel() error {
+func (s *Session) createDataChannel() error {
 	ordered := true
 	maxPacketLifeTime := uint16(10000)
-	dataChannel, err := s.session.CreateDataChannel(&webrtc.DataChannelInit{
+	dataChannel, err := s.sess.CreateDataChannel(&webrtc.DataChannelInit{
 		Ordered:           &ordered,
 		MaxPacketLifeTime: &maxPacketLifeTime,
 	})
