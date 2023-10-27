@@ -4,21 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Upload</title>
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-</head>
-<body>
-    <h1>File Upload</h1>
-    
-    <form action="" id="uploadForm" enctype="multipart/form-data">
-        <label for="fileToUpload">Select a file: </label>
-        <input type="file" name="fileToUpload" id="fileToUpload"><br><br>
-        <input type="submit" value="Send" onclick="uploadFile(event)">
-        <div id="qrcode"></div>
-    </form>
-
     <script>
         function uploadFile(event) {
             event.preventDefault();
+
+            var buttonText = document.getElementById('buttonText');
+            var spinner = document.querySelector('svg');
+
+            if (buttonText.innerText === 'Send') {
+                buttonText.innerText = 'Generating...';
+                spinner.classList.remove('hidden');
+            }
+
             var fileInput = document.getElementById('fileToUpload');
             var file = fileInput.files[0];
             var formData = new FormData();
@@ -30,21 +30,124 @@
             })
             .then((response) => response.json())
             .then(data => {
-                console.log(data.body)
-                displayQR(data.body) // if type is url condition shoudl be added
+                if (data.type === "links") {
+                    displayLinks(data);
+                } else {
+                    console.log("Malformed response")
+                }
             });
         };
-        function displayQR(url) {
-            console.log(String(url))
+        function displayLinks(data) {
+            var content = document.getElementById('content');
+            var links = document.getElementById('links');
+            var filename = document.getElementById('filename');
+            var filesize = document.getElementById('filesize');
+            var expiration = document.getElementById('expiration');
+            var copy = document.getElementById('copy');
+            var url = document.getElementById('url');
+
+            content.classList.add('hidden');
+            links.classList.remove('hidden');
+            filename.innerText = "Filename: " + data.name;
+            filesize.innerText = "Size: " + data.size + "MB";
+            expiration.innerText = "Expires at: " + data.expires;
+            url.innerText = data.url;
+
             var qrcode = new QRCode(document.getElementById("qrcode"), {
-                text: url,
-                width: 500,
-                height: 500,
+                text: data.url,
+                width: 200,
+                height: 200,
                 colorDark : "#000000",
                 colorLight : "#ffffff",
                 correctLevel : QRCode.CorrectLevel.L
             });
-        }
+        };
+        function copyToClipboard() {
+            var textToCopy = document.getElementById("url").innerText;
+            // Create a textarea element to temporarily hold the text
+            var tempTextArea = document.createElement("textarea");
+            tempTextArea.value = textToCopy;
+            tempTextArea.setAttribute("readonly", "");
+            tempTextArea.style.position = "absolute";
+            tempTextArea.style.left = "-9999px"; // Move the textarea off-screen
+            document.body.appendChild(tempTextArea);
+
+            // Select and copy the text
+            var selected =
+                document.getSelection().rangeCount > 0
+                    ? document.getSelection().getRangeAt(0)
+                    : false;
+            tempTextArea.select();
+            document.execCommand("copy");
+
+            // Clean up and provide feedback
+            document.body.removeChild(tempTextArea);
+            if (selected) {
+                document.getSelection().removeAllRanges();
+                document.getSelection().addRange(selected);
+            }
+
+            alert("Copied the text: " + textToCopy);
+        };
     </script>
+</head>
+<body class="bg-gradient-to-br from-slate-900 to-neutral-950 min-h-screen flex flex-col justify-between p-4">
+    <div>
+        <div class="bg-inherit bg-no-repeat mx-auto w-full overflow-hidden lg:w-7/12">
+            <header class="flex flex-row justify-between items-center py-4">
+                <div class="flex flex-row items-center">
+                    <img href="/" class="h-12 pr-2 w-auto" src="/static/logo.png" alt="Logo">
+                    <div href="/" class="text-3xl font-bold text-white">Wormhole</div>
+                </div>
+                <nav class="flex flex-row items-center">
+                    <div class="text-lg text-white underline underline-offset-2 px-2"><a href="https://github.com/dinosoupy/wormhole">Source</a></div>
+                </nav>
+            </header>
+
+            <br><br>
+
+            <div id="content">
+                <div class="text-div font-bold text-white mb-2">How it works</div>
+                <p class="text-div text-white/60">Wormhole allows you to send small files across devices using AWS S3 as an intermediary. Simply upload a file from your device and wait for a download link to be generated. You can copy the link or scan a QR code to download the file from any device. This link is active for 1 hour after which the file is deleted permanently from our servers.</p>
+
+                <br><br>
+                
+                <div class="text-div font-bold text-white mb-2" for="fileToUpload">Select a file</div>
+                <form class="bg-white/5 text-white/60 p-3 rounded-md" action="" id="uploadForm" enctype="multipart/form-data">
+                    <input type="file" name="fileToUpload" id="fileToUpload">
+                </form>
+
+                <br>
+
+                <button type="submit" class="flex flex-row text-white rounded-md bg-[#ff00ff] px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500" onclick="uploadFile(event)">
+                    <svg class="hidden animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span id="buttonText">Send</span>
+                </button>
+            </div>   
+        </div>
+        <div id="links" class="hidden w-full mx-auto p-8 overflow-hidden bg-white/5 rounded-md flex flex-col lg:flex-row justify-between lg:w-7/12">
+            <div class="flex flex-col justify-between mb-8 lg:mb-0">
+                <div class="mb-2 lg:mb-0">
+                    <div class="text-div font-bold text-white mb-2">Details</div>
+                    <p id="filename" class="text-div text-white/60"></p>
+                    <p id="filesize" class="text-div text-white/60"></p>
+                    <p id="expiration" class="text-div text-white/60"></p>
+                    <p id="url" class="hidden"></p>
+                </div>
+                <button id="copy" type="submit" class="flex flex-row text-white rounded-md bg-[#ff00ff] px-3.5 py-2.5 text-sm font-semibold shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500" value="Copy to clipboard" onclick="copyToClipboard()">
+                    <svg class="mr-3 h-5 w-5" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#ffffff" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>ic_fluent_copy_24_regular</title> <desc>Created with Sketch.</desc> <g id="🔍-Product-Icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="ic_fluent_copy_24_regular" fill="#ffffff" fill-rule="nonzero"> <path d="M5.50280381,4.62704038 L5.5,6.75 L5.5,17.2542087 C5.5,19.0491342 6.95507456,20.5042087 8.75,20.5042087 L17.3662868,20.5044622 C17.057338,21.3782241 16.2239751,22.0042087 15.2444057,22.0042087 L8.75,22.0042087 C6.12664744,22.0042087 4,19.8775613 4,17.2542087 L4,6.75 C4,5.76928848 4.62744523,4.93512464 5.50280381,4.62704038 Z M17.75,2 C18.9926407,2 20,3.00735931 20,4.25 L20,17.25 C20,18.4926407 18.9926407,19.5 17.75,19.5 L8.75,19.5 C7.50735931,19.5 6.5,18.4926407 6.5,17.25 L6.5,4.25 C6.5,3.00735931 7.50735931,2 8.75,2 L17.75,2 Z M17.75,3.5 L8.75,3.5 C8.33578644,3.5 8,3.83578644 8,4.25 L8,17.25 C8,17.6642136 8.33578644,18 8.75,18 L17.75,18 C18.1642136,18 18.5,17.6642136 18.5,17.25 L18.5,4.25 C18.5,3.83578644 18.1642136,3.5 17.75,3.5 Z"> </path> </g> </g> </g></svg>
+                    <span>Copy download link</span>
+                </button>
+            </div>
+            <div id="qrcode" class="mx-auto lg:mx-0"></div>
+        </div> 
+    </div> 
+    <footer class="w-full mx-auto lg:w-7/12 absolute bottom-2 left-0 right-0">
+        <hr class="w-full h-0.5 my-2 border-0 rounded-md bg-white/40">
+        <p class="text-left text-white/40 text-xs">Made by <a class="text-white underline underline-offset-2" href="https://anishbasu.com/">Anish Basu</a></p>
+    </footer>
 </body>
 </html>
